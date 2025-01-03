@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode/utf8"
 )
 
 func check(e error) {
@@ -19,6 +20,7 @@ func main() {
 	var bytesCountFlag = flag.Bool("c", false, "Bytes count")
 	var linesCountFlag = flag.Bool("l", false, "Lines count")
 	var wordsCountFlag = flag.Bool("w", false, "Words count")
+	var charactersCountFlag = flag.Bool("m", false, "Characters count")
 
 	flag.Parse()
 
@@ -56,6 +58,21 @@ func main() {
 			wordsCount += len(strings.Fields(text))
 		}
 		output += fmt.Sprintf("%d", wordsCount)
+	}
+
+	if *charactersCountFlag {
+		var charCount int
+		reader := bufio.NewReader(file)
+		for {
+			r, _, err := reader.ReadRune()
+			if err != nil {
+				break
+			}
+			if r != utf8.RuneError {
+				charCount++
+			}
+		}
+		output += fmt.Sprintf("%d", charCount)
 	}
 
 	output += " " + *fileName
