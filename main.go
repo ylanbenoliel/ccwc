@@ -14,17 +14,20 @@ func check(e error) {
 
 func main() {
 	var fileName = flag.String("f", "", "File to be readed")
-
-	var countBytesFlag = flag.Bool("c", false, "Bytes count")
-	var output string
+	var bytesCountFlag = flag.Bool("c", false, "Bytes count")
 
 	flag.Parse()
 
-	var file, err = os.ReadFile(*fileName)
-	check(err)
+	var output string
 
-	if *countBytesFlag {
-		output += fmt.Sprintf("%d", len(file))
+	var file, err = os.Open(*fileName)
+	check(err)
+	defer file.Close()
+
+	if *bytesCountFlag {
+		var fileInfo, err = file.Stat()
+		check(err)
+		output += fmt.Sprintf("%d", fileInfo.Size())
 	}
 
 	output += " " + *fileName
