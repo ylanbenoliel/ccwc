@@ -15,6 +15,51 @@ func check(e error) {
 	}
 }
 
+func bytesCount(file *os.File) string {
+	var fileInfo, err = file.Stat()
+	check(err)
+	return fmt.Sprintf("%d ", fileInfo.Size())
+}
+
+func linesCount(file *os.File) string {
+	var lines int
+	fileScanner := bufio.NewScanner(file)
+	for fileScanner.Scan() {
+		lines++
+	}
+	return fmt.Sprintf("%d ", lines)
+}
+
+func wordsCount(file *os.File) string {
+	var wordsCount int
+	var text string
+	reader := bufio.NewReader(file)
+	for {
+		line, _, err := reader.ReadLine()
+		if err != nil {
+			break
+		}
+		text = string(line[:])
+		wordsCount += len(strings.Fields(text))
+	}
+	return fmt.Sprintf("%d ", wordsCount)
+}
+
+func charsCount(file *os.File) string {
+	var charCount int
+	reader := bufio.NewReader(file)
+	for {
+		r, _, err := reader.ReadRune()
+		if err != nil {
+			break
+		}
+		if r != utf8.RuneError {
+			charCount++
+		}
+	}
+	return fmt.Sprintf("%d ", charCount)
+}
+
 func main() {
 	var fileName = flag.String("f", "", "File to be readed")
 	var bytesCountFlag = flag.Bool("c", false, "Bytes count")
@@ -31,50 +76,27 @@ func main() {
 	defer file.Close()
 
 	if *bytesCountFlag {
-		var fileInfo, err = file.Stat()
-		check(err)
-		output += fmt.Sprintf("%d", fileInfo.Size())
+		output += bytesCount(file)
 	}
 
 	if *linesCountFlag {
-		var lines int
-		fileScanner := bufio.NewScanner(file)
-		for fileScanner.Scan() {
-			lines++
-		}
-		output += fmt.Sprintf("%d", lines)
+		output += linesCount(file)
 	}
 
 	if *wordsCountFlag {
-		var wordsCount int
-		var text string
-		fileScanner := bufio.NewScanner(file)
-		for fileScanner.Scan() {
-			text = fileScanner.Text()
-			text = strings.Trim(text, " ")
-			if text == "" {
-				continue
-			}
-			wordsCount += len(strings.Fields(text))
-		}
-		output += fmt.Sprintf("%d", wordsCount)
+		output += wordsCount(file)
 	}
 
 	if *charactersCountFlag {
-		var charCount int
-		reader := bufio.NewReader(file)
-		for {
-			r, _, err := reader.ReadRune()
-			if err != nil {
-				break
-			}
-			if r != utf8.RuneError {
-				charCount++
-			}
-		}
-		output += fmt.Sprintf("%d", charCount)
+		output += charsCount(file)
 	}
 
-	output += " " + *fileName
+	if !*bytesCountFlag && !*linesCountFlag && !*wordsCountFlag {
+		output += linesCount(file)
+		output += wordsCount(file)
+		output += bytesCount(file)
+	}
+
+	output += *fileName
 	fmt.Println(output)
 }
