@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
@@ -15,6 +16,7 @@ func check(e error) {
 func main() {
 	var fileName = flag.String("f", "", "File to be readed")
 	var bytesCountFlag = flag.Bool("c", false, "Bytes count")
+	var linesCountFlag = flag.Bool("l", false, "Lines count")
 
 	flag.Parse()
 
@@ -28,6 +30,15 @@ func main() {
 		var fileInfo, err = file.Stat()
 		check(err)
 		output += fmt.Sprintf("%d", fileInfo.Size())
+	}
+
+	if *linesCountFlag {
+		var lines int
+		fileScanner := bufio.NewScanner(file)
+		for fileScanner.Scan() {
+			lines++
+		}
+		output += fmt.Sprintf("%d", lines)
 	}
 
 	output += " " + *fileName
