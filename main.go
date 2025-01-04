@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"unicode/utf8"
@@ -60,6 +61,27 @@ func charsCount(file *os.File) string {
 	return fmt.Sprintf("%d ", charCount)
 }
 
+func fileStats(file *os.File) (int, int, int, error) {
+	lineCount := 0
+	wordCount := 0
+	byteCount := 0
+	reader := bufio.NewReader(file)
+
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil && err != io.EOF {
+			return 0, 0, 0, err
+		}
+		if err == io.EOF {
+			break
+		}
+		lineCount++
+		wordCount += len(strings.Fields(line))
+		byteCount += len(line)
+	}
+	return lineCount, wordCount, byteCount, nil
+}
+
 func main() {
 	var fileName = flag.String("f", "", "File to be readed")
 	var bytesCountFlag = flag.Bool("c", false, "Bytes count")
@@ -92,9 +114,12 @@ func main() {
 	}
 
 	if !*bytesCountFlag && !*linesCountFlag && !*wordsCountFlag {
-		output += linesCount(file)
-		output += wordsCount(file)
-		output += bytesCount(file)
+		lines, words, bytes, err := fileStats(file)
+		check(err)
+		output += fmt.Sprintf("%d ", lines)
+		output += fmt.Sprintf("%d ", words)
+		output += fmt.Sprintf("%d ", bytes)
+
 	}
 
 	output += *fileName
